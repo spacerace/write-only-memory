@@ -5,3 +5,13 @@ This driver implements a driver for the signetics 25120 WRITE ONLY MEMORY.
 Once loaded the module create a /dev-node with:
 $ mknod /dev/wom c XXX 0
 To get the correct value for XXX see `dmesg`
+
+Applications:
+
+	* don't care buffer stores
+	* least significant control memories
+	* post mortem memories (weapon systems)
+	* artificial memory stores
+	* non-intelligent micro controllers
+	* first-in never-out (fino) asynchronous buffer
+	* overflow register (bit bucket)
