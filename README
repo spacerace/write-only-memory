@@ -1,0 +1,7 @@
+(c) 2013 Nils Stec <nils.stec@gmail.com>
+
+This driver implements a driver for the signetics 25120 WRITE ONLY MEMORY.
+
+Once loaded the module create a /dev-node with:
+$ mknod /dev/wom c XXX 0
+To get the correct value for XXX see `dmesg`
