@@ -62,7 +62,7 @@ static ssize_t device_write(struct file *filp, const char *buff, size_t len, lof
 	
 	if(copy_from_user(message_from_user, buff, (len < BUF_LEN) ? len : BUF_LEN)) return -EINVAL;
 	message_from_user[4] = '\0';
-	
+	printk(KERN_INFO "[signetics wom-25120] discarded %dbytes of data\n", (int)len);	
 	return len;
 }
 
