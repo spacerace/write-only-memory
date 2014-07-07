@@ -50,7 +50,7 @@ static int device_open(struct inode *inode, struct file *file) {
 	if(Device_Open) return -EBUSY;
 	Device_Open++;
 	
-	sprintf(msg, "THIS IS A WRITE ONLY MEMORY - GO FUCK YOURSELF AND DISCARD YOUR DATA!!!\n");
+	sprintf(msg, "write only memory does not support read operations, all your data is lost.\n");
 
 	msg_Ptr = msg;
 	try_module_get(THIS_MODULE);
