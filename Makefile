@@ -1,4 +1,4 @@
-obj-m += wom-25120.o
+obj-m += wom.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules

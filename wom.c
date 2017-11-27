@@ -1,12 +1,15 @@
 /* 
  * wom.c
  * 
- * an implementation of signetics famous write-only-memory as a kernel module
+ * an implementation of signetics' famous write-only-memory as a kernel module
+ *
+ * supported chips:
+ * 	* signetics 25120 - PDF attached to source
  * 
- * * LAST CHANGE: 15. feb 2013, Nils Stec
+ * * LAST CHANGE: 23. nov 2017, Nils Stec
  * 
- *  Authors:    Nils Stec, "krumeltee", <nils.stec@gmail.com>, (c) 2013
- *              some module parts are by LKMPG                             - taken from version "2007-05-18 ver 2.6.4"
+ *  Authors:    Nils Stec, <stecdose@gmail.com>, (c) 2013, 2017
+ *              some module parts are by LKMPG - taken from version "2007-05-18 ver 2.6.4"
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,12 +34,14 @@
 #include <linux/fs.h>
 #include <asm/io.h>
 
-#include "wom-25120.h"
+#include "wom.h"
 
 static int Major;		/* Major number assigned to our device driver */
 static int Device_Open = 0;	/* Is device open? */
 static char msg[BUF_LEN];	/* The msg the device will give when asked */
 static char *msg_Ptr;
+
+static uint64_t discarded_bytes;
 
 static struct file_operations fops = {
 	.read = device_read,
@@ -45,12 +50,12 @@ static struct file_operations fops = {
 	.release = device_release
 };
 
-/*  Called when a process tries to open the device file */
+/* called when a process tries to open the device file */
 static int device_open(struct inode *inode, struct file *file) {
 	if(Device_Open) return -EBUSY;
 	Device_Open++;
 	
-	sprintf(msg, "write only memory does not support read operations, all your data is lost.\n");
+	sprintf(msg, "write only memory does not support read operations. Already wrote %llubytes to nowhere.\n", discarded_bytes);
 
 	msg_Ptr = msg;
 	try_module_get(THIS_MODULE);
@@ -62,29 +67,32 @@ static ssize_t device_write(struct file *filp, const char *buff, size_t len, lof
 	
 	if(copy_from_user(message_from_user, buff, (len < BUF_LEN) ? len : BUF_LEN)) return -EINVAL;
 	message_from_user[4] = '\0';
-	printk(KERN_INFO "[signetics wom-25120] discarded %dbytes of data\n", (int)len);	
+	printk(KERN_INFO "[wom] discarded %dbytes of data\n", (int)len);
+	discarded_bytes += len;
 	return len;
 }
 
 
-/** called when module loaded */
+/* called when module loaded */
 int init_module_wom(void) {
 	Major = register_chrdev(0, DEVICE_NAME, &fops);
 	if (Major < 0) {
-		printk(KERN_ALERT "[signetics wom-25120] registering char device failed with %d\n", Major);
+		printk(KERN_ALERT "[wom] registering char device failed with %d\n", Major);
 		return Major;
 	}
 
-	printk(KERN_INFO "[signetics wom-25120] driver loaded with major %d\n", Major);
-	printk(KERN_INFO "[signetics wom-25120] >> $ mknod /dev/%s c %d 0\n", DEVICE_NAME, Major);
+	discarded_bytes = 0;
+
+	printk(KERN_INFO "[wom] driver loaded with major %d\n", Major);
+	printk(KERN_INFO "[wom] >> $ mknod /dev/%s c %d 0\n", DEVICE_NAME, Major);
 	
 	return SUCCESS;
 }
 
-/** called when module unloaded */
+/* called when module unloaded */
 void cleanup_module_wom(void) {
 	unregister_chrdev(Major, DEVICE_NAME);
-	printk(KERN_INFO "[signetics wom-25120] DRIVER UNLOADED\n");
+	printk(KERN_INFO "[wom] DRIVER UNLOADED\n");
 }
 
 /* Called when a process closes the device file. */
