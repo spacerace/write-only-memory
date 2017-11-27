@@ -1,0 +1,10 @@
+.tmp_versions/
+.wom-25120.ko.cmd
+.wom-25120.mod.o.cmd
+.wom-25120.o.cmd
+Module.symvers
+modules.order
+wom-25120.ko
+wom-25120.mod.c
+wom-25120.mod.o
+wom-25120.o
